@@ -585,6 +585,11 @@ def validate_store_path_variable(ctx, param, value):
     type=click.Path(),
 )
 @click.option(
+    "--move-seeded-torrent",
+    help="Move the torrent to this path if it has been seeded already on the client.",
+    type=click.Path(),
+)
+@click.option(
     "--stopped",
     help="Add the torrent in stopped state.",
     flag_value=True,
@@ -615,6 +620,7 @@ def add(
     chown,
     dry_run,
     move_torrent_on_add,
+    move_seeded_torrent,
     stopped,
     store_path_template,
     store_path_variable,
@@ -681,6 +687,10 @@ def add(
         if infohash in existing_torrents:
             add_status_formatter("seeded", torrent_path, "is already seeded")
             stats["seeded"] += 1
+            if move_seeded_torrent:
+                move_seeded_torrent = Path(move_seeded_torrent)
+                move_seeded_torrent.mkdir(exist_ok=True, parents=True)
+                torrent_path.rename(move_seeded_torrent / torrent_path.name)
             continue
 
         found_bad_hash = False
